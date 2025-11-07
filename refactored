@@ -2,89 +2,31 @@
 float posX;
 float posY;
 int dim;
-int start = 0;
+int flag = 0;
 int endscreen =0;
 int numEnemy=5;
-enemy[] e = new enemy[numEnemy]; 
+int start=0;
+float[] enemyPosX = new float[numEnemy];
+float[] enemyPosY = new float[numEnemy];
+float[] enemyTimer = new float[numEnemy];
+float[] enemyTimerUpdate = new float[numEnemy];
 float enemySpeed = 5;
 float pacmanSpeed= 50;
-
-class enemy{
-    float enemyPosX,enemyPosY,enemyTimer,enemyTimerUpdate;
-    boolean alive;
-
-    enemy(){
-        alive=true;
-        enemyPosX=random(width);
-        enemyPosY=((int)random(0.5,1.5)*height);
-        enemyTimer = enemyTimerUpdate = random(10,20);
-    }
-
-    void tick(){
-        if(alive){   
-            timer();
-            move();
-            draw();
-        }
-    }
-
-    void move(){
-        if(enemyPosX>posX)
-            enemyPosX=enemyPosX-enemySpeed*(random(0.5,1.5));
-        else
-            enemyPosX=enemyPosX+enemySpeed*(random(0.5,1.5));
-
-        if(enemyPosY>posY)
-            enemyPosY=enemyPosY-enemySpeed*(random(0.5,1.5));
-        else
-            enemyPosY=enemyPosY+enemySpeed*(random(0.5,1.5));
-
-        enemySpeed=enemySpeed+0.001;
-    }
-
-    void draw(){
-        pushMatrix();
-        translate(enemyPosX,enemyPosY);
-
-        noStroke();
-        fill(255,0,0);
-        circle(0,0,dim);
-
-        stroke(0);
-        strokeWeight(3);
-        fill(0,200,0);
-        arc(0,0,(dim/4)*3,(dim/4*3),HALF_PI-(PI*enemyTimerUpdate)/enemyTimer,HALF_PI+(PI*enemyTimerUpdate)/enemyTimer,CHORD);
-        
-
-        popMatrix();
-    }
-
-    void timer(){
-        enemyTimerUpdate = enemyTimerUpdate-(0.016666);
-
-        if(enemyTimerUpdate<0){
-            enemyPosX=enemyPosY= Float.MIN_VALUE;
-            alive=true;
-        }
-        
-    }
-}
-
 
 
 
 void setup(){
-    //size(1000,1000);
     fullScreen();
-    frameRate(60);
     background(200,100,200);
     posX = width/2;
     posY = height/2;
     dim = 100;
 
     for(int i=0;i<numEnemy;i++){
-        e[i]= new enemy();
-        print("X: ",e[i].enemyPosX," Y: ",e[i].enemyPosY,"\n");
+        enemyPosX[i]=random(width);
+        enemyPosY[i]=((int)random(0.5,1.5)*height);
+        enemyTimer[i]= enemyTimerUpdate[i] = random(10,20);
+        print("X: ",enemyPosX[i]," Y: ",enemyPosY[i],"\n");
     }
     
     //noLoop();
@@ -94,16 +36,16 @@ void draw(){
 
     //ending
     if(endscreen==1){
-        delay(1000);
+        print("hello");
         exit();
     }
 
     //start
-    if(start==0){
+    if(flag==0){
         fill(255,0,0);
         strokeWeight(4);
         ellipse(width/2,height/6,50,50);
-        start=1;
+        flag=1;
         noLoop();
     }else{
         //float modifier = (enemyTimer[0]-enemyTimerUpdate[0])*10;
@@ -111,27 +53,26 @@ void draw(){
         rect(0,0,width,height);
         
 
-
-
-        for(int i=0;i<numEnemy;i++)
-            e[i].tick();
-    
         apple();
         pacman();
         
+
+        for(int i=0;i<numEnemy;i++)
+            enemy(i);
+    
         distanceChecker();
     }
 }
 
 
 void distanceChecker(){
-    if(dist(posX,posY,mouseX,mouseY)<dim/4){
+    if(dist(posX,posY,mouseX,mouseY)<dim){
         print("packman ate the apple");
         endscreen();
     }
 
     for(int i=0;i<numEnemy;i++){
-        if(dist(posX,posY,e[i].enemyPosX,e[i].enemyPosY)<dim){
+        if(dist(posX,posY,enemyPosX[i],enemyPosY[i])<dim){
             print("pacman got eaten");
             endscreen();
         }
@@ -145,16 +86,54 @@ void endscreen(){
     textAlign(CENTER);
     fill(0);
     text("The End",width/2,height/2);
+    delay(1000);
     endscreen=1;
 }
 void apple(){
-    fill(0);
-    noStroke();
+    fill(255,0,0);
+    strokeWeight(4);
     ellipse(mouseX,mouseY,50,50);
 
 }
 
+void enemy(int id){
+    if(enemyTimerUpdate[id]<0){
+        enemyPosX[id]=enemyPosY[id]= MAX_FLOAT;
+        return;
+    }
 
+    if(enemyPosX[id]>posX)
+        enemyPosX[id]=enemyPosX[id]-enemySpeed*(random(0.5,1.5));
+    else
+        enemyPosX[id]=enemyPosX[id]+enemySpeed*(random(0.5,1.5));
+
+    if(enemyPosY[id]>posY)
+        enemyPosY[id]=enemyPosY[id]-enemySpeed*(random(0.5,1.5));
+    else
+        enemyPosY[id]=enemyPosY[id]+enemySpeed*(random(0.5,1.5));
+
+    enemySpeed=enemySpeed+0.001;
+    
+    pushMatrix();
+    translate(enemyPosX[id],enemyPosY[id]);
+
+    noStroke();
+    fill(255,0,0);
+    circle(0,0,dim);
+
+    stroke(0);
+    strokeWeight(3);
+    fill(0,200,0);
+    arc(0,0,(dim/4)*3,(dim/4*3),HALF_PI-(PI*enemyTimerUpdate[id])/enemyTimer[id],HALF_PI+(PI*enemyTimerUpdate[id])/enemyTimer[id],CHORD);
+    
+
+    popMatrix();
+
+
+    enemyTimerUpdate[id] = enemyTimerUpdate[id]-(0.016666);
+
+
+}
 
 void pacman(){
     // update position
