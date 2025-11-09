@@ -4,17 +4,16 @@ int dim;
 int start = 0;
 int endscreen =0;
 int numEnemy=5;
-enemy[] e = new enemy[numEnemy];
 float closestEnemy; 
+enemy[] e;
 pacman p; 
-float pacmanSpeed= 50;
-
 
 class pacman{
     float posX = width/2;
     float posY = height/2;
     float speedX;
     float speedY;
+    float pacmanSpeed= 50;
 
     void tick(){
         move();
@@ -32,7 +31,7 @@ class pacman{
         pushMatrix();
         // move origin to pacman's position, then rotate so the pacman faces movement direction
         translate(posX, posY);
-        float ang = atan2(speedY, speedX);
+        float ang = atan2(mouseY-posY,mouseX-posX);
         rotate(ang);
 
 
@@ -137,6 +136,8 @@ void setup(){
     closestEnemy = width;
 
     p = new pacman();
+    e = new enemy[numEnemy];
+    
     for(int i=0;i<numEnemy;i++){
         e[i]= new enemy();
         print("X: ",e[i].enemyPosX," Y: ",e[i].enemyPosY,"\n");
