@@ -1,16 +1,60 @@
 
-float posX;
-float posY;
+
 int dim;
 int start = 0;
 int endscreen =0;
 int numEnemy=5;
-enemy[] e = new enemy[numEnemy]; 
-float enemySpeed = 5;
+enemy[] e = new enemy[numEnemy];
+float closestEnemy; 
+pacman p; 
 float pacmanSpeed= 50;
+
+
+class pacman{
+    float posX = width/2;
+    float posY = height/2;
+    float speedX;
+    float speedY;
+
+    void tick(){
+        move();
+        draw();
+    }
+
+    void move(){
+        speedX = (mouseX-posX)/pacmanSpeed;
+        speedY = (mouseY-posY)/pacmanSpeed;
+        posX = posX + speedX;
+        posY = posY + speedY;
+    }
+
+    void draw(){
+        pushMatrix();
+        // move origin to pacman's position, then rotate so the pacman faces movement direction
+        translate(posX, posY);
+        float ang = atan2(speedY, speedX);
+        rotate(ang);
+
+
+        stroke(0);
+        strokeWeight(8);
+        noFill();
+
+        arc(0, 0, dim, dim,radians(45),radians(90),PIE);
+        arc(0, 0, dim, dim,radians(270),radians(315),PIE);
+
+
+        noStroke();
+        fill(200,200,100);
+        arc(0, 0, dim, dim,radians(45), radians(315),PIE);
+
+        popMatrix();
+    }
+}
 
 class enemy{
     float enemyPosX,enemyPosY,enemyTimer,enemyTimerUpdate;
+    float enemySpeed = 3;
     boolean alive;
 
     enemy(){
@@ -20,21 +64,22 @@ class enemy{
         enemyTimer = enemyTimerUpdate = random(10,20);
     }
 
-    void tick(){
+    float tick(){
         if(alive){   
             timer();
             move();
             draw();
         }
+        return eat();
     }
 
     void move(){
-        if(enemyPosX>posX)
+        if(enemyPosX>p.posX)
             enemyPosX=enemyPosX-enemySpeed*(random(0.5,1.5));
         else
             enemyPosX=enemyPosX+enemySpeed*(random(0.5,1.5));
 
-        if(enemyPosY>posY)
+        if(enemyPosY>p.posY)
             enemyPosY=enemyPosY-enemySpeed*(random(0.5,1.5));
         else
             enemyPosY=enemyPosY+enemySpeed*(random(0.5,1.5));
@@ -68,6 +113,15 @@ class enemy{
         }
         
     }
+
+    float eat(){
+        float distance = dist(p.posX,p.posY,enemyPosX,enemyPosY);
+        if(distance<dim){
+            print("pacman got eaten");
+            endscreen();
+        }
+        return distance;
+    }
 }
 
 
@@ -76,12 +130,13 @@ class enemy{
 void setup(){
     //size(1000,1000);
     fullScreen();
-    frameRate(60);
+    //frameRate(1);
     background(200,100,200);
-    posX = width/2;
-    posY = height/2;
-    dim = 100;
 
+    dim = 100;
+    closestEnemy = width;
+
+    p = new pacman();
     for(int i=0;i<numEnemy;i++){
         e[i]= new enemy();
         print("X: ",e[i].enemyPosX," Y: ",e[i].enemyPosY,"\n");
@@ -100,43 +155,33 @@ void draw(){
 
     //start
     if(start==0){
-        fill(255,0,0);
-        strokeWeight(4);
-        ellipse(width/2,height/6,50,50);
+        apple(true);
         start=1;
         noLoop();
     }else{
-        //float modifier = (enemyTimer[0]-enemyTimerUpdate[0])*10;
-        fill (100,150,100,10);
+
+        print(closestEnemy,"\n");
+        if(closestEnemy<dim*2.5){
+            fill (200,50,50,10);
+        }
+        else
+            fill (100,150,100,10);
         rect(0,0,width,height);
         
+        //creating entities
+        p.tick();
+        apple(false);
 
-
-
-        for(int i=0;i<numEnemy;i++)
-            e[i].tick();
-    
-        apple();
-        pacman();
-        
-        distanceChecker();
-    }
-}
-
-
-void distanceChecker(){
-    if(dist(posX,posY,mouseX,mouseY)<dim/4){
-        print("packman ate the apple");
-        endscreen();
-    }
-
-    for(int i=0;i<numEnemy;i++){
-        if(dist(posX,posY,e[i].enemyPosX,e[i].enemyPosY)<dim){
-            print("pacman got eaten");
-            endscreen();
+        closestEnemy = width;
+        for(int i=0;i<numEnemy;i++){
+            float tmp = e[i].tick();
+            if(tmp<closestEnemy)
+                closestEnemy=tmp;
         }
+        
     }
 }
+
 
 void endscreen(){
     fill(100,0,0);
@@ -147,44 +192,27 @@ void endscreen(){
     text("The End",width/2,height/2);
     endscreen=1;
 }
-void apple(){
+
+void apple(boolean start){
+
+    float x,y;
+    if(start==true){
+        x = width/2;
+        y = height/6;
+    }
+    else{
+        x = mouseX;
+        y = mouseY;
+    }
+
     fill(0);
     noStroke();
-    ellipse(mouseX,mouseY,50,50);
+    ellipse(x,y,50,50);
 
-}
-
-
-
-void pacman(){
-    // update position
-    float speedX = (mouseX-posX)/pacmanSpeed;
-    float speedY = (mouseY-posY)/pacmanSpeed;
-    posX = posX + speedX;
-    posY = posY + speedY;
-
-    pushMatrix();
-    // move origin to pacman's position, then rotate so the pacman faces movement direction
-    translate(posX, posY);
-    float ang = atan2(speedY, speedX);
-    rotate(ang);
-
-
-    stroke(0);
-    strokeWeight(8);
-    noFill();
-
-    arc(0, 0, dim, dim,radians(45),radians(90),PIE);
-    arc(0, 0, dim, dim,radians(270),radians(315),PIE);
-    //arc(0, 0, dim, dim,radians(45), radians(315),PIE);
-
-
-    noStroke();
-    fill(200,200,100);
-    // draw arc centered at origin (0,0) so rotation affects it
-    arc(0, 0, dim, dim,radians(45), radians(315),PIE);
-
-    popMatrix();
+    if(dist(p.posX,p.posY,x,y)<dim/4){
+        print("packman ate the apple");
+        endscreen();
+    }
 }
 
 void mouseClicked(){
