@@ -1,0 +1,2 @@
+This small programs have been made with this version of processing. (https://github.com/processing/processing4/releases/tag/processing-1310-4.4.10).
+to run them either use the integrated DE or use the vs-code extention available in the microsoft marketplace.
